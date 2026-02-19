@@ -1,0 +1,92 @@
+diff --git a/authfd.c b/authfd.c
+index 9791b9e6b..21977658a 100644
+--- a/authfd.c
++++ b/authfd.c
+@@ -768,3 +768,41 @@ ssh_agent_bind_hostkey(int sock, const struct sshkey *key,
+ 	sshbuf_free(msg);
+ 	return r;
+ }
++
++/*
++ * Sends host information to the agent via a custom extension.
++ * Includes the hostname, host key, session ID, and the server's KEX
++ * signature so the agent can verify the connection is authentic and
++ * display the target hostname when prompting for approval.
++ */
++int
++ssh_agent_bind_hostinfo(int sock, const char *hostname,
++    const struct sshkey *key, const struct sshbuf *session_id,
++    const struct sshbuf *signature, int forwarding)
++{
++	struct sshbuf *msg;
++	int r;
++
++	if (hostname == NULL || key == NULL ||
++	    session_id == NULL || signature == NULL)
++		return SSH_ERR_INVALID_ARGUMENT;
++	if ((msg = sshbuf_new()) == NULL)
++		return SSH_ERR_ALLOC_FAIL;
++	if ((r = sshbuf_put_u8(msg, SSH_AGENTC_EXTENSION)) != 0 ||
++	    (r = sshbuf_put_cstring(msg, "session-bind@pl.loee")) != 0 ||
++	    (r = sshbuf_put_cstring(msg, hostname)) != 0 ||
++	    (r = sshkey_puts(key, msg)) != 0 ||
++	    (r = sshbuf_put_stringb(msg, session_id)) != 0 ||
++	    (r = sshbuf_put_stringb(msg, signature)) != 0 ||
++	    (r = sshbuf_put_u8(msg, forwarding ? 1 : 0)) != 0)
++		goto out;
++	if ((r = ssh_request_reply_decode(sock, msg)) != 0) {
++		/* Agent may not support this extension; not fatal */
++		r = 0;
++		goto out;
++	}
++	r = 0;
++ out:
++	sshbuf_free(msg);
++	return r;
++}
+diff --git a/authfd.h b/authfd.h
+index da4830a96..ca06a1896 100644
+--- a/authfd.h
++++ b/authfd.h
+@@ -67,6 +67,10 @@ int	ssh_agent_bind_hostkey(int sock, const struct sshkey *key,
+     const struct sshbuf *session_id, const struct sshbuf *signature,
+     int forwarding);
+ 
++int	ssh_agent_bind_hostinfo(int sock, const char *hostname,
++    const struct sshkey *key, const struct sshbuf *session_id,
++    const struct sshbuf *signature, int forwarding);
++
+ /* Messages for the authentication agent connection. */
+ #define SSH_AGENTC_REQUEST_RSA_IDENTITIES	1
+ #define SSH_AGENT_RSA_IDENTITIES_ANSWER		2
+diff --git a/sshconnect.c b/sshconnect.c
+index 4384277a6..3e400a37e 100644
+--- a/sshconnect.c
++++ b/sshconnect.c
+@@ -1620,6 +1620,26 @@ ssh_login(struct ssh *ssh, Sensitive *sensitive, const char *orighost,
+ 	    ssh->kex->name != NULL && options.warn_weak_crypto &&
+ 	    !kex_is_pq_from_name(ssh->kex->name))
+ 		warn_nonpq_kex();
++
++	/* Send host info to agent before authentication */
++	if (ssh->kex != NULL && ssh->kex->initial_hostkey != NULL &&
++	    ssh->kex->session_id != NULL && ssh->kex->initial_sig != NULL) {
++		int agent_fd;
++
++		if (ssh_get_authentication_socket(&agent_fd) == 0) {
++			r = ssh_agent_bind_hostinfo(agent_fd, host,
++			    ssh->kex->initial_hostkey,
++			    ssh->kex->session_id,
++			    ssh->kex->initial_sig, 0);
++			if (r == 0)
++				debug("bound agent to host %s", host);
++			else
++				debug2("failed to bind agent to host: %s",
++				    ssh_err(r));
++			ssh_close_authentication_socket(agent_fd);
++		}
++	}
++
+ 	ssh_userauth2(ssh, local_user, server_user, host, sensitive);
+ 	free(local_user);
+ 	free(host);

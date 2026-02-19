@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "openssh-loee"
+version = "0.1.0"
+description = "OpenSSH client with session-bind@pl.loee agent extension for verified host info forwarding"
+readme = "README.md"
+license = "BSD-2-Clause"
+requires-python = ">=3.8"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
+    "Topic :: System :: Networking",
+]
+
+[project.scripts]
+ssh = "openssh_loee:main"
+
+[tool.setuptools]
+packages = ["openssh_loee"]
+
+[tool.setuptools.package-data]
+openssh_loee = ["bin/*"]

@@ -1,0 +1,11 @@
+.build/
+build/
+.swiftpm/
+*.o
+*.d
+DerivedData/
+__pycache__/
+*.pyc
+dist/
+*.egg-info/
+packaging/openssh_loee/bin/ssh
