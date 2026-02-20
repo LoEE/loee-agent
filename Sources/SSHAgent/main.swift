@@ -15,11 +15,21 @@ try? knownHosts.loadDefault()
 // Determine socket paths
 let homeDir = FileManager.default.homeDirectoryForCurrentUser.path
 let sshDir = homeDir + "/.ssh"
-let localSocketPath = sshDir + "/agent-local.sock"
-let forwardedSocketPath = sshDir + "/agent-forwarded.sock"
+let localSocketPath = sshDir + "/loee-agent-local.sock"
+let forwardedSocketPath = sshDir + "/loee-agent-forwarded.sock"
 
 // Ensure ~/.ssh exists
 try? FileManager.default.createDirectory(atPath: sshDir, withIntermediateDirectories: true)
+
+// Capture upstream agent before we override SSH_AUTH_SOCK
+let upstreamAgent: UpstreamAgent?
+if let upstreamPath = ProcessInfo.processInfo.environment["SSH_AUTH_SOCK"],
+   upstreamPath != localSocketPath,
+   upstreamPath != forwardedSocketPath {
+    upstreamAgent = UpstreamAgent(socketPath: upstreamPath)
+} else {
+    upstreamAgent = nil
+}
 
 // Local socket: auto-approve all signing requests
 let localHandler = AgentRequestHandler(keyStore: keyStore, knownHosts: knownHosts, approvalHandler: nil)
@@ -38,6 +48,10 @@ let forwardedServer = AgentServer(
     socketType: .forwarded,
     requestHandler: forwardedHandler
 )
+
+// Wire up upstream agent
+localHandler.upstreamAgent = upstreamAgent
+forwardedHandler.upstreamAgent = upstreamAgent
 
 // Install signal handlers for cleanup
 func cleanup() {
@@ -61,15 +75,15 @@ DispatchQueue.global().async {
         try forwardedServer.start()
 
         NSLog("SSH agent started")
-        NSLog("  Local socket:     \(localSocketPath)")
-        NSLog("  Forwarded socket: \(forwardedSocketPath)")
+        NSLog("  Local socket:     ~/.ssh/loee-agent-local.sock")
+        NSLog("  Forwarded socket: ~/.ssh/loee-agent-forwarded.sock")
+        if let upstreamAgent {
+            NSLog("  Upstream agent:   %@", upstreamAgent.socketPath)
+        } else {
+            NSLog("  Upstream agent:   none")
+        }
         NSLog("")
-        NSLog("Usage:")
-        NSLog("  export SSH_AUTH_SOCK=\"\(localSocketPath)\"")
-        NSLog("")
-        NSLog("SSH config for forwarding:")
-        NSLog("  Host myserver")
-        NSLog("    RemoteForward /run/user/%%i/agent.sock \(forwardedSocketPath)")
+        NSLog("Run 'ssh-agent-ctl setup' for one-time SSH config setup.")
     } catch {
         NSLog("Failed to start SSH agent: \(error)")
         exit(1)

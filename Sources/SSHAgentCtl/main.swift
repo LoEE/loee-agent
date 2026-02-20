@@ -12,6 +12,8 @@ let commandArgs = Array(args.dropFirst())
 
 do {
     switch command {
+    case "setup":
+        try commandSetup(args: commandArgs)
     case "generate":
         try commandGenerate(args: commandArgs)
     case "list":
