@@ -64,7 +64,7 @@ build_zlib() {
     fi
 
     echo "--- Building zlib (static) ---"
-    local zlib_version="1.3.1"
+    local zlib_version="1.3.2"
     cd "$DEPS_DIR"
     if [ ! -f "zlib-${zlib_version}.tar.gz" ]; then
         curl -LO "https://zlib.net/zlib-${zlib_version}.tar.gz"
