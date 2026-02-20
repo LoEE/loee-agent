@@ -2,7 +2,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "ssh-agent",
+    name: "loee-agent",
     platforms: [.macOS(.v13)],
     targets: [
         .target(
@@ -10,7 +10,7 @@ let package = Package(
             path: "Sources/SSHAgentLib"
         ),
         .executableTarget(
-            name: "ssh-agent",
+            name: "loee-agent",
             dependencies: ["SSHAgentLib"],
             path: "Sources/SSHAgent",
             linkerSettings: [
@@ -18,7 +18,7 @@ let package = Package(
             ]
         ),
         .executableTarget(
-            name: "ssh-agent-ctl",
+            name: "loee-agent-ctl",
             dependencies: ["SSHAgentLib"],
             path: "Sources/SSHAgentCtl"
         ),

@@ -8,7 +8,7 @@
 
     <key>ProgramArguments</key>
     <array>
-        <string>/usr/local/bin/ssh-agent</string>
+        <string>/usr/local/bin/loee-agent</string>
     </array>
 
     <key>RunAtLoad</key>

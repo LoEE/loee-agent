@@ -25,7 +25,7 @@ public final class AgentConnectionHandler {
         self.clientFD = clientFD
         self.socketType = socketType
         self.requestHandler = requestHandler
-        self.queue = DispatchQueue(label: "pl.loee.ssh-agent.conn.\(clientFD)")
+        self.queue = DispatchQueue(label: "pl.loee.loee-agent.conn.\(clientFD)")
         self.onClose = onClose
     }
 

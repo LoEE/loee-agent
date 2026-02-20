@@ -83,7 +83,7 @@ DispatchQueue.global().async {
             NSLog("  Upstream agent:   none")
         }
         NSLog("")
-        NSLog("Run 'ssh-agent-ctl setup' for one-time SSH config setup.")
+        NSLog("Run 'loee-agent-ctl setup' for one-time SSH config setup.")
     } catch {
         NSLog("Failed to start SSH agent: \(error)")
         exit(1)

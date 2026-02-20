@@ -16,7 +16,7 @@ public final class AgentServer {
     public let requestHandler: AgentRequestHandler
     private var listenFD: Int32 = -1
     private var listenSource: DispatchSourceRead?
-    private let queue = DispatchQueue(label: "pl.loee.ssh-agent.server", attributes: .concurrent)
+    private let queue = DispatchQueue(label: "pl.loee.loee-agent.server", attributes: .concurrent)
 
     /// Active connections — the server retains handlers for their lifetime.
     private var connections = Set<ObjectIdentifier>()

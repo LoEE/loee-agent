@@ -42,7 +42,7 @@ func commandList(args: [String]) throws {
     let keys = try keyStore.loadAllKeys()
 
     if keys.isEmpty {
-        printStderr("No keys found. Use 'ssh-agent-ctl generate' to create one.")
+        printStderr("No keys found. Use 'loee-agent-ctl generate' to create one.")
         return
     }
 
@@ -53,8 +53,8 @@ func commandList(args: [String]) throws {
 
 func commandExport(args: [String]) throws {
     guard let id = parseArg("--id", from: args) else {
-        printStderr("Usage: ssh-agent-ctl export --id <key-id>")
-        printStderr("Use 'ssh-agent-ctl list' to see available keys.")
+        printStderr("Usage: loee-agent-ctl export --id <key-id>")
+        printStderr("Use 'loee-agent-ctl list' to see available keys.")
         exit(1)
     }
 
@@ -73,7 +73,7 @@ func commandExport(args: [String]) throws {
 
 func commandDelete(args: [String]) throws {
     guard let id = parseArg("--id", from: args) else {
-        printStderr("Usage: ssh-agent-ctl delete --id <key-id>")
+        printStderr("Usage: loee-agent-ctl delete --id <key-id>")
         exit(1)
     }
 
@@ -152,7 +152,7 @@ func printStderr(_ message: String) {
 
 func printUsage() {
     let usage = """
-        Usage: ssh-agent-ctl <command> [options]
+        Usage: loee-agent-ctl <command> [options]
 
         Commands:
           setup       Configure SSH to use the agent (one-time)
