@@ -54,7 +54,7 @@ jobs:
 
       - name: Build wheel
         run: |
-          pip install build wheel
+          pip install build wheel setuptools
           cd packaging
           python -m build --wheel --no-isolation
         env:
